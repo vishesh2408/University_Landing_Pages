@@ -1,0 +1,20 @@
+node_modules/
+/env
+/.env.*
+/frontend/node_modules/
+/backend/node_modules/
+/dist/
+/build/
+.DS_Store
+/.vite
+/.idea
+/*.log
+/frontend/.env
+
+# Ignore local database files
+*.sqlite
+*.db
+
+# Ignore npm/yarn lock for private forks (optional)
+# package-lock.json
+# yarn.lock
