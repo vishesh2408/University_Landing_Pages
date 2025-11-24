@@ -11,18 +11,35 @@ const app = express()
 // Configure CORS allowlist from env:
 // - ALLOWED_ORIGINS: comma-separated list (preferred)
 // - FRONTEND_URL: single origin (fallback)
+// Optional: set ALLOW_ALL_ORIGINS=true to temporarily disable origin checks (debug only)
 const rawAllowed = process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || ''
 const allowedOrigins = rawAllowed.split(',').map(s => s.trim()).filter(Boolean)
+const allowAll = String(process.env.ALLOW_ALL_ORIGINS || '').toLowerCase() === 'true'
 
 const corsOptions = {
   origin: function(origin, callback) {
     // allow requests with no origin (e.g. curl, server-side)
     if (!origin) return callback(null, true)
-    if (allowedOrigins.length === 0) {
-      // no allowlist configured — allow all origins (use with caution)
+
+    // Debug bypass: allow everything when explicitly enabled
+    if (allowAll) {
+      console.warn('CORS: ALLOW_ALL_ORIGINS is true — allowing origin', origin)
       return callback(null, true)
     }
-    if (allowedOrigins.indexOf(origin) !== -1) return callback(null, true)
+
+    // No allowlist configured — allow all origins (not recommended for production)
+    if (allowedOrigins.length === 0) {
+      console.warn('CORS: no allowlist set — allowing origin', origin)
+      return callback(null, true)
+    }
+
+    // Allowed list present — check membership
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true)
+    }
+
+    // Not allowed — log for debugging and reject
+    console.warn('CORS policy: Origin not allowed ->', origin)
     return callback(new Error('CORS policy: Origin not allowed'))
   },
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
